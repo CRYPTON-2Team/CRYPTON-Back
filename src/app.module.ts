@@ -6,6 +6,7 @@ import { getTypeOrmConfig } from './config/typeorm.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config/config.schema';
 import { HealthModule } from './health/health.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
       inject: [ConfigService],
     }),
     HealthModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],
