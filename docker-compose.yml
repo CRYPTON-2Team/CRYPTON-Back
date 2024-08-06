@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  crypton:
+    container_name: crypton
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '${NODE_PORT}:${NODE_PORT}'
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    command: npm run start:dev
+    depends_on:
+      - crypton_redis
+
+  crypton_redis:
+    image: redis:latest
+    container_name: crypton_redis
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
