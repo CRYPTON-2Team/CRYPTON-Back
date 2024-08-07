@@ -7,9 +7,10 @@ import { HealthModule } from './health/health.module';
 import { S3Module } from './s3/s3.module';
 import { QueuesModule } from './queues/queues.module';
 import { BullModule } from '@nestjs/bull';
-import { FileShareModule } from './file-share/file-share.module';
+import { FileShareModule } from './file-shares/file-shares.module';
 import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
+import { AccessRequestsModule } from './access-requests/access-requests.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { FilesModule } from './files/files.module';
     FileShareModule,
     UsersModule,
     FilesModule,
+    AccessRequestsModule,
   ],
   controllers: [],
   providers: [],

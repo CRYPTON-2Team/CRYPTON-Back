@@ -13,13 +13,14 @@ services:
     environment:
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_DATABASE=${DB_DATABASE}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
     command: npm run start:dev
     depends_on:
+      - crypton_postgres
       - crypton_redis
 
   crypton_redis:
@@ -27,3 +28,20 @@ services:
     container_name: crypton_redis
     ports:
       - '${REDIS_PORT}:${REDIS_PORT}'
+
+  crypton_postgres:
+    image: postgres:13
+    container_name: crypton_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '${DB_PORT}:${DB_PORT}'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

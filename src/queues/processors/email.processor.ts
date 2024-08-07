@@ -14,10 +14,10 @@ export class EmailProcessor {
     private configService: ConfigService,
   ) {}
 
-  @Process('sendShareLink')
-  async handleSendShareLink(job: Job) {
-    this.logger.debug('Start sending share link email...');
-    const { to, subject, text } = job.data;
+  @Process('sendEmail')
+  async handleSendEmail(job: Job) {
+    this.logger.debug('Start sending email...');
+    const { to, subject, text, html } = job.data;
 
     try {
       await this.transporter.sendMail({
@@ -25,10 +25,11 @@ export class EmailProcessor {
         to,
         subject,
         text,
+        html,
       });
-      this.logger.debug('Share link email sent successfully');
+      this.logger.debug(`Email sent successfully to ${to}`);
     } catch (error) {
-      this.logger.error('Failed to send share link email', error.stack);
+      this.logger.error(`Failed to send email to ${to}`, error.stack);
       throw error;
     }
   }
