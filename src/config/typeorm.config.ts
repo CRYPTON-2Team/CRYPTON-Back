@@ -4,7 +4,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export const typeOrmModuleOptions: Partial<TypeOrmModuleOptions> = {
   type: 'postgres',
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
-  synchronize: false,
+  synchronize: true,
 };
 
 export const getTypeOrmConfig = (
