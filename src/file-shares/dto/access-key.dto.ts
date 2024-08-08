@@ -1,10 +1,6 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 
-export class VerifyAccessKeyDto {
-  @IsString()
-  @IsNotEmpty()
-  token: string;
-
+export class AccessFileShareDto {
   @IsString()
   @IsNotEmpty()
   accessKey: string;
