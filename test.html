@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S3 File Upload and Download Test</title>
+  </head>
+  <body>
+    <h1>S3 File Upload and Download Test</h1>
+
+    <h2>Upload File</h2>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+    <div id="uploadStatus"></div>
+
+    <h2>Download File</h2>
+    <input type="text" id="fileKey" placeholder="Enter file key" />
+    <button onclick="downloadFile()">Download File</button>
+    <div id="downloadStatus"></div>
+
+    <script>
+      async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+          alert('Please select a file first.');
+          return;
+        }
+
+        const statusDiv = document.getElementById('uploadStatus');
+        statusDiv.textContent = 'Getting presigned URL...';
+
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          // 서버로 파일 정보 전송
+          const response = await fetch('http://localhost:3000/files/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get presigned URL');
+          }
+
+          const { uploadUrl, key, encryptedBuffer, contentType } =
+            await response.json();
+          console.log('Received uploadUrl:', uploadUrl);
+
+          statusDiv.textContent = 'Uploading to S3...';
+
+          // S3에 파일 업로드
+          if (uploadUrl) {
+            let uploadBody;
+            if (encryptedBuffer) {
+              // base64 문자열을 Uint8Array로 변환
+              const binaryString = atob(encryptedBuffer);
+              uploadBody = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                uploadBody[i] = binaryString.charCodeAt(i);
+              }
+            } else {
+              uploadBody = file;
+            }
+
+            const uploadResponse = await fetch(uploadUrl, {
+              method: 'PUT',
+              body: uploadBody,
+              headers: {
+                'Content-Type': contentType || file.type,
+              },
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error('Failed to upload to S3');
+            }
+
+            statusDiv.textContent = 'File uploaded successfully to S3';
+            console.log('File uploaded successfully to S3');
+          } else {
+            throw new Error('No upload URL provided');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          statusDiv.textContent = `Error: ${error.message}`;
+        }
+      }
+
+      async function downloadFile() {
+        const fileKey = document.getElementById('fileKey').value;
+        if (!fileKey) {
+          alert('Please enter a file key.');
+          return;
+        }
+
+        const statusDiv = document.getElementById('downloadStatus');
+        statusDiv.textContent = 'Downloading file...';
+
+        try {
+          const response = await fetch(
+            `http://localhost:3000/files/download/${encodeURIComponent(fileKey)}`,
+            {
+              method: 'GET',
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error('Download failed');
+          }
+
+          // 커스텀 헤더에서 파일 이름 가져오기
+          console.log(response.headers);
+          const encodedFileName = response.headers.get('X-Original-Filename');
+          console.log(encodedFileName);
+          let filename = 'downloaded-file';
+          if (encodedFileName) {
+            filename = atob(encodedFileName); // Base64 디코딩
+          }
+
+          // Create a blob from the response
+          const blob = await response.blob();
+
+          // Create a temporary URL for the blob
+          const url = window.URL.createObjectURL(blob);
+
+          // Create a temporary anchor element and trigger the download
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+
+          // Clean up
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+
+          statusDiv.textContent = `File "${filename}" downloaded successfully!`;
+        } catch (error) {
+          console.error('Error:', error);
+          statusDiv.textContent = `Error: ${error.message}`;
+        }
+      }
+    </script>
+  </body>
+</html>
