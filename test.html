@@ -62,7 +62,7 @@
             } else {
               uploadBody = file;
             }
-
+            //uploadUrl을 사용해서 fetch (업로드)
             const uploadResponse = await fetch(uploadUrl, {
               method: 'PUT',
               body: uploadBody,
@@ -86,6 +86,9 @@
         }
       }
 
+
+      //파일 다운로드
+
       async function downloadFile() {
         const fileKey = document.getElementById('fileKey').value;
         if (!fileKey) {
@@ -97,6 +100,8 @@
         statusDiv.textContent = 'Downloading file...';
 
         try {
+          //서버에 파일 키를 사용하여 presigned url 요청
+          //파일 키는 
           const response = await fetch(
             `http://localhost:3000/files/download/${encodeURIComponent(fileKey)}`,
             {
@@ -108,14 +113,14 @@
             throw new Error('Download failed');
           }
 
-          // 커스텀 헤더에서 파일 이름 가져오기
+          // 커스텀 헤더(메타데이터)에서 파일 이름 가져오기
           const encodedFileName = response.headers.get('X-Original-Filename');
           let filename = 'downloaded-file';
           if (encodedFileName) {
             filename = decodeURIComponent(encodedFileName); // URL 디코딩
           }
 
-          // Content-Disposition 헤더에서 파일 이름 추출 (백업 방법)
+          //업다면 Content-Disposition 헤더에서 파일 이름 추출 (백업 방법)
           const contentDisposition = response.headers.get(
             'Content-Disposition',
           );
@@ -128,13 +133,13 @@
             }
           }
 
-          // Create a blob from the response
+          //blob으로 변환
           const blob = await response.blob();
 
-          // Create a temporary URL for the blob
+          //blob 객체로부터 임시 url 생성
           const url = window.URL.createObjectURL(blob);
 
-          // Create a temporary anchor element and trigger the download
+          // 앵커 엘리먼트('a')를 사용하여 다운로드 트리거 발생
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
@@ -142,11 +147,13 @@
           document.body.appendChild(a);
           a.click();
 
-          // Clean up
+          
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
 
           statusDiv.textContent = `File "${filename}" downloaded successfully!`;
+
+          //여기서는 키를 직접 넣는 방식으로 했지만, 차후 화면에 보이는 파일의 속성을 데이터베이스에 저장할것이기 때문에, 파일클릭 -> 다운로드를 누름으로써 동일하게 동작하게끔 만들 예정입니다.
         } catch (error) {
           console.error('Error:', error);
           statusDiv.textContent = `Error: ${error.message}`;

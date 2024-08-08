@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       userId: user.id,
       username: user.username,
       email: user.email,
-      role: user.role, // 사용자 역할 정보 포함
+      role: user.role,
     };
   }
 }

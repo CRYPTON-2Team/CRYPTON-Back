@@ -44,7 +44,6 @@ export class FileService {
       Bucket: process.env.AWS_S3_BUCKET,
       Key: s3Key,
       ContentType: contentType,
-      // ContentEncoding: 'utf-8',
       Metadata: {
         'original-name': decodedFileName,
         'unique-id': uniqueId,
@@ -84,8 +83,6 @@ export class FileService {
     if (!Body || !(Body instanceof Readable)) {
       throw new Error('File not found or not readable');
     }
-
-    // 첫 16바이트를 읽어 IV를 추출합니다.
     const ivChunk = await new Promise<Buffer>((resolve) => {
       Body.once('readable', () => {
         const iv = Body.read(16);
@@ -98,25 +95,17 @@ export class FileService {
     }
 
     const decipherStream = this.createDecryptStream(ivChunk);
-
-    // Body 스트림에서 나머지 데이터를 decipherStream으로 파이프합니다.
     return Body.pipe(decipherStream);
   }
 
   async decodeFileName(str: string): Promise<string> {
-    // MIME encoded-word 형식 체크
-    if (str.startsWith('=?UTF-8?Q?')) {
-      // MIME encoded-word 디코딩
-      str = str.replace(/=\?UTF-8\?Q\?(.*?)\?=/gi, (match, p1) => {
-        return decodeURIComponent(p1.replace(/=/g, '%').replace(/_/g, ' '));
-      });
-    }
-
-    // UTF-8로 인코딩된 문자열 다시 디코딩
     try {
-      return decodeURIComponent(escape(str));
+      if (str.startsWith('=?UTF-8?Q?')) {
+        str = str.replace(/=\?UTF-8\?Q\?(.*?)\?=/gi, (match, p1) => {
+          return decodeURIComponent(p1.replace(/=/g, '%').replace(/_/g, ' '));
+        });
+      }
     } catch (e) {
-      // 디코딩 실패 시 원본 반환
       console.error('Decoding failed:', e);
       return str;
     }
@@ -131,7 +120,6 @@ export class FileService {
 
       const headObject = await this.s3Client.send(command);
       const originalFileName = headObject.Metadata?.['original-name'];
-      console.log('Original file name from metadata:', originalFileName);
 
       if (originalFileName) {
         return this.decodeFileName(originalFileName);
@@ -139,7 +127,7 @@ export class FileService {
         return key.split('/').pop() || 'unknown';
       }
     } catch (error) {
-      console.error('Error getting original file name:', error);
+      console.error('파일 이름을 가져오는데 실패했습니다:', error);
       return 'unknown';
     }
   }

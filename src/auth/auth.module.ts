@@ -18,6 +18,5 @@ import { PassportModule } from '@nestjs/passport';
     PassportModule.register({ defaultStrategy: 'local' }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
-  // 필요한 경우 controllers 추가
 })
 export class AuthModule {}

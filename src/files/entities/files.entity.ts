@@ -8,6 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('files')
 export class File {
@@ -17,7 +18,7 @@ export class File {
   @Column({ name: 'metadata_id', unique: true })
   metadataId: string;
 
-  // @ManyToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: number;
 
