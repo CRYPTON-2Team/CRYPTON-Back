@@ -15,7 +15,7 @@ import { redisConfig } from 'src/config/redis.config';
     ConfigModule.forRoot(),
     TypeOrmModule.forFeature([FileShare, File, AccessRequest, User]),
     BullModule.registerQueue({
-      name: 'email', 
+      name: 'email',
     }),
   ],
   providers: [FileShareService, redisConfig],

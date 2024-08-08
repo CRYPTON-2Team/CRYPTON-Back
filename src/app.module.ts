@@ -10,6 +10,7 @@ import { FileShareModule } from './file-shares/file-shares.module';
 import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { AccessRequestsModule } from './access-requests/access-requests.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,8 @@ import { AccessRequestsModule } from './access-requests/access-requests.module';
         redis: {
           host: configService.get('REDIS_HOST'),
           port: +configService.get<number>('REDIS_PORT'),
+          maxRetriesPerRequest: null,
+          enableReadyCheck: false,
         },
       }),
       inject: [ConfigService],
@@ -40,6 +43,7 @@ import { AccessRequestsModule } from './access-requests/access-requests.module';
     UsersModule,
     FilesModule,
     AccessRequestsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

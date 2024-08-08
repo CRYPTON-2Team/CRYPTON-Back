@@ -8,18 +8,27 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
 
-  @OneToMany(() => File, file => file.user)
+  @Column({ unique: true })
+  username: string;
+
+  @Column({ unique: true, default: 'user' })
+  role: string;
+
+  @Column({ default: null })
+  profileImgUrl: string;
+
+  @OneToMany(() => File, (file) => file.user)
   files: File[];
 
-  @OneToMany(() => FileShare, fileShare => fileShare.user)
+  @OneToMany(() => FileShare, (fileShare) => fileShare.user)
   fileShares: FileShare[];
 
-  @OneToMany(() => AccessRequest, accessRequest => accessRequest.fileOwner)
+  @OneToMany(() => AccessRequest, (accessRequest) => accessRequest.fileOwner)
   sentAccessRequests: AccessRequest[];
 }
