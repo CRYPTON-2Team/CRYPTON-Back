@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S3 File Upload and Download Test</title>
+  </head>
+  <body>
+    <h1>S3 File Upload and Download Test</h1>
+
+    <h2>Upload File</h2>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+    <div id="uploadStatus"></div>
+
+    <h2>Download File</h2>
+    <input type="text" id="fileKey" placeholder="Enter file key" />
+    <button onclick="downloadFile()">Download File</button>
+    <div id="downloadStatus"></div>
+
+    <script>
+      async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+          alert('Please select a file first.');
+          return;
+        }
+
+        const statusDiv = document.getElementById('uploadStatus');
+        statusDiv.textContent = 'Getting presigned URL...';
+
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          // 서버로 파일 정보 전송
+          const response = await fetch('http://localhost:3000/files/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get presigned URL');
+          }
+
+          const { uploadUrl, key, encryptedBuffer, contentType } =
+            await response.json();
+
+          statusDiv.textContent = 'Uploading to S3...';
+
+          // S3에 파일 업로드
+          if (uploadUrl) {
+            let uploadBody;
+            if (encryptedBuffer) {
+              // base64 문자열을 Uint8Array로 변환
+              const binaryString = atob(encryptedBuffer);
+              uploadBody = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                uploadBody[i] = binaryString.charCodeAt(i);
+              }
+            } else {
+              uploadBody = file;
+            }
+            //uploadUrl을 사용해서 fetch (업로드)
+            const uploadResponse = await fetch(uploadUrl, {
+              method: 'PUT',
+              body: uploadBody,
+              headers: {
+                'Content-Type': contentType || file.type,
+              },
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error('Failed to upload to S3');
+            }
+
+            statusDiv.textContent = 'File uploaded successfully to S3';
+            console.log('File uploaded successfully to S3');
+          } else {
+            throw new Error('No upload URL provided');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          statusDiv.textContent = `Error: ${error.message}`;
+        }
+      }
+
+
+      //파일 다운로드
+
+      async function downloadFile() {
+        const fileKey = document.getElementById('fileKey').value;
+        if (!fileKey) {
+          alert('Please enter a file key.');
+          return;
+        }
+
+        const statusDiv = document.getElementById('downloadStatus');
+        statusDiv.textContent = 'Downloading file...';
+
+        try {
+          //서버에 파일 키를 사용하여 presigned url 요청
+          //파일 키는 
+          const response = await fetch(
+            `http://localhost:3000/files/download/${encodeURIComponent(fileKey)}`,
+            {
+              method: 'GET',
+            },
+          );
+
+          if (!response.ok) {
+            throw new Error('Download failed');
+          }
+
+          // 커스텀 헤더(메타데이터)에서 파일 이름 가져오기
+          const encodedFileName = response.headers.get('X-Original-Filename');
+          let filename = 'downloaded-file';
+          if (encodedFileName) {
+            filename = decodeURIComponent(encodedFileName); // URL 디코딩
+          }
+
+          //업다면 Content-Disposition 헤더에서 파일 이름 추출 (백업 방법)
+          const contentDisposition = response.headers.get(
+            'Content-Disposition',
+          );
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(
+              /filename\*=UTF-8''(.+)/i,
+            );
+            if (filenameMatch && filenameMatch[1]) {
+              filename = decodeURIComponent(filenameMatch[1]);
+            }
+          }
+
+          //blob으로 변환
+          const blob = await response.blob();
+
+          //blob 객체로부터 임시 url 생성
+          const url = window.URL.createObjectURL(blob);
+
+          // 앵커 엘리먼트('a')를 사용하여 다운로드 트리거 발생
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+
+          
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+
+          statusDiv.textContent = `File "${filename}" downloaded successfully!`;
+
+          //여기서는 키를 직접 넣는 방식으로 했지만, 차후 화면에 보이는 파일의 속성을 데이터베이스에 저장할것이기 때문에, 파일클릭 -> 다운로드를 누름으로써 동일하게 동작하게끔 만들 예정입니다.
+        } catch (error) {
+          console.error('Error:', error);
+          statusDiv.textContent = `Error: ${error.message}`;
+        }
+      }
+    </script>
+  </body>
+</html>
