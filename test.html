@@ -112,7 +112,20 @@
           const encodedFileName = response.headers.get('X-Original-Filename');
           let filename = 'downloaded-file';
           if (encodedFileName) {
-            filename = atob(encodedFileName); // Base64 디코딩
+            filename = decodeURIComponent(encodedFileName); // URL 디코딩
+          }
+
+          // Content-Disposition 헤더에서 파일 이름 추출 (백업 방법)
+          const contentDisposition = response.headers.get(
+            'Content-Disposition',
+          );
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(
+              /filename\*=UTF-8''(.+)/i,
+            );
+            if (filenameMatch && filenameMatch[1]) {
+              filename = decodeURIComponent(filenameMatch[1]);
+            }
           }
 
           // Create a blob from the response

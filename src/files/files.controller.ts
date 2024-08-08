@@ -39,12 +39,18 @@ export class FileController {
     const fileStream: internal.Readable =
       await this.fileService.streamDownloadAndDecrypt(key);
     const originalFileName = await this.fileService.getOriginalFileName(key);
-    const encodedFileName = Buffer.from(originalFileName).toString('base64');
+    const encodedFileName = encodeURIComponent(originalFileName);
 
+    console.log('Original File Name:', originalFileName);
+    console.log('Encoded File Name:', encodedFileName);
+
+    // X-Original-Filename 헤더 설정 (URL 인코딩 사용)
     res.setHeader('X-Original-Filename', encodedFileName);
+
+    // Content-Disposition 헤더 설정
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename*=UTF-8''${encodeURIComponent(originalFileName)}`,
+      `attachment; filename*=UTF-8''${encodedFileName}`,
     );
     res.setHeader('Content-Type', 'application/octet-stream');
 

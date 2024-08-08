@@ -9,6 +9,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import * as crypto from 'crypto';
 import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
+import { decodeWords } from 'libmime';
 
 @Injectable()
 export class FileService {
@@ -102,6 +103,25 @@ export class FileService {
     return Body.pipe(decipherStream);
   }
 
+  async decodeFileName(str: string): Promise<string> {
+    // MIME encoded-word 형식 체크
+    if (str.startsWith('=?UTF-8?Q?')) {
+      // MIME encoded-word 디코딩
+      str = str.replace(/=\?UTF-8\?Q\?(.*?)\?=/gi, (match, p1) => {
+        return decodeURIComponent(p1.replace(/=/g, '%').replace(/_/g, ' '));
+      });
+    }
+
+    // UTF-8로 인코딩된 문자열 다시 디코딩
+    try {
+      return decodeURIComponent(escape(str));
+    } catch (e) {
+      // 디코딩 실패 시 원본 반환
+      console.error('Decoding failed:', e);
+      return str;
+    }
+  }
+
   async getOriginalFileName(key: string): Promise<string> {
     try {
       const command = new HeadObjectCommand({
@@ -111,9 +131,10 @@ export class FileService {
 
       const headObject = await this.s3Client.send(command);
       const originalFileName = headObject.Metadata?.['original-name'];
+      console.log('Original file name from metadata:', originalFileName);
 
       if (originalFileName) {
-        return decodeURIComponent(originalFileName);
+        return this.decodeFileName(originalFileName);
       } else {
         return key.split('/').pop() || 'unknown';
       }
