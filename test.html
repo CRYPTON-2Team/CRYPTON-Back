@@ -46,7 +46,6 @@
 
           const { uploadUrl, key, encryptedBuffer, contentType } =
             await response.json();
-          console.log('Received uploadUrl:', uploadUrl);
 
           statusDiv.textContent = 'Uploading to S3...';
 
@@ -110,9 +109,7 @@
           }
 
           // 커스텀 헤더에서 파일 이름 가져오기
-          console.log(response.headers);
           const encodedFileName = response.headers.get('X-Original-Filename');
-          console.log(encodedFileName);
           let filename = 'downloaded-file';
           if (encodedFileName) {
             filename = atob(encodedFileName); // Base64 디코딩

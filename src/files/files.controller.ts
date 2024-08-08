@@ -39,10 +39,7 @@ export class FileController {
     const fileStream: internal.Readable =
       await this.fileService.streamDownloadAndDecrypt(key);
     const originalFileName = await this.fileService.getOriginalFileName(key);
-    console.log(originalFileName);
-    console.log(encodeURIComponent(originalFileName));
     const encodedFileName = Buffer.from(originalFileName).toString('base64');
-    console.log(encodedFileName);
 
     res.setHeader('X-Original-Filename', encodedFileName);
     res.setHeader(

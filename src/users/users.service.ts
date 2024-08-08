@@ -35,6 +35,21 @@ export class UsersService {
     }
   }
 
+  async findOneByEmail(email: string): Promise<User | undefined> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new NotFoundException(`${email}은 존재하지 않습니다.`);
+      }
+      return user;
+    } catch (err) {
+      throw new HttpException(
+        `${email}에 대한 정보를 가져오던 도중 문제가 발생했습니다. 다시 시도해주세요.`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async findUserById(id: number): Promise<User | undefined> {
     try {
       const user = await this.usersRepository.findOne({ where: { id } });

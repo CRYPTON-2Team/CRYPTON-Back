@@ -33,9 +33,7 @@ export class FileService {
   ): Promise<string> {
     const buffer = Buffer.from(key, 'binary');
     const decodedFileName = buffer.toString('utf8');
-    console.log(decodedFileName);
     const safeFileName = encodeURIComponent(decodedFileName);
-    console.log('a:', safeFileName);
     const uniqueId = uuidv4();
     const timestamp = Date.now();
 
@@ -51,8 +49,6 @@ export class FileService {
         'unique-id': uniqueId,
       },
     });
-
-    console.log('Generating presigned URL for:', s3Key);
 
     return getSignedUrl(this.s3Client, command, {
       expiresIn: 3600,
@@ -115,7 +111,6 @@ export class FileService {
 
       const headObject = await this.s3Client.send(command);
       const originalFileName = headObject.Metadata?.['original-name'];
-      console.log('a:', originalFileName);
 
       if (originalFileName) {
         return decodeURIComponent(originalFileName);
