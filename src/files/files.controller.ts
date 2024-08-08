@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Post,
@@ -22,8 +21,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-@ApiTags('files')
-@Controller('files')
+@ApiTags('file')
+@Controller('file')
 export class FileController {
   constructor(private readonly fileService: FileService) {}
 
@@ -66,7 +65,7 @@ export class FileController {
     const fileStream: internal.Readable =
       await this.fileService.streamDownloadAndDecrypt(key);
     const originalFileName = await this.fileService.getOriginalFileName(key);
-    const encodedFileName = encodeURIComponent(originalFileName)
+    const encodedFileName = encodeURIComponent(originalFileName);
 
     res.setHeader('X-Original-Filename', encodedFileName);
     res.setHeader(
