@@ -21,7 +21,7 @@ export class EmailProcessor {
 
     try {
       await this.transporter.sendMail({
-        from: this.configService.get('SMTP_FROM'),
+        from: this.configService.get('MAIL_ID'),
         to,
         subject,
         text,
