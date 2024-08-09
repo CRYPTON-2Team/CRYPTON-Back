@@ -135,8 +135,8 @@ export class FileShareService {
     const subject = '[공유] 크립톤 파일 공유]';
     const html = `
       <p>파일 공유 링크: <a href="${shareUrl}">here</a>.</p>
-      <p>파일명: ${fileShare.file.name}</p>
-      <p>크기: ${fileShare.file.size} bytes</p>
+      <p>파일명: ${fileShare.file.fileName}</p>
+      <p>크기: ${fileShare.file.fileSize} bytes</p>
       <p>파일 형식: ${fileShare.file.ext}</p>
       <p>암호 키: ${accessKey}</p>
       <p>유효기간: ${fileShare.expiredAt}</p>

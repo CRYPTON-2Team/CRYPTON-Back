@@ -90,7 +90,7 @@ export class AuthController {
   @Get('logout')
   @HttpCode(HttpStatus.OK)
   async logOut(@Req() req, @Res({ passthrough: true }) res: Response) {
-    await this.authService.logout(req.user.userId);
+    await this.authService.logout(req.user.id);
     this._clearTokenCookies(res);
     return { message: '로그아웃 성공' };
   }
@@ -103,9 +103,9 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async reissueAccessToken(@Request() req) {
-    const { userId } = req.user;
+    const { id } = req.user;
     console.log(2);
-    const result = await this.authService.reissueAccessToken(userId);
+    const result = await this.authService.reissueAccessToken(id);
     return {
       message: '토큰 재발급 성공',
       accessToken: result.accessToken,

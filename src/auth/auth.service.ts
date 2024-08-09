@@ -1,7 +1,10 @@
 import {
   BadRequestException,
+  HttpException,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -22,13 +25,26 @@ export class AuthService {
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<any> {
-    const { email, password } = loginDto;
-    const user = await this.usersService.findOneByEmail(email);
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
+    try {
+      const { email, password } = loginDto;
+      const user = await this.usersService.findOneByEmail(email);
+      if (!user) throw new NotFoundException('유저를 찾지 못했습니다.');
+      if (user && (await bcrypt.compare(password, user.password))) {
+        const { password, ...result } = user;
+        return result;
+      }
+      throw new UnauthorizedException('유효하지 않은 인증입니다. ');
+    } catch (err) {
+      if (
+        err instanceof NotFoundException ||
+        err instanceof UnauthorizedException
+      ) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        '유저를 검증하는 도중 오류가 발생했습니다.',
+      );
     }
-    return null;
   }
 
   async login(user: User) {
@@ -148,8 +164,6 @@ export class AuthService {
           7 * 24 * 60 * 60,
         );
       }
-
-      // 새 액세스 토큰을 Redis에 저장 (예: 1시간 유효)
       await this.redis.set(
         `accessToken:${userId}`,
         newAccessToken,

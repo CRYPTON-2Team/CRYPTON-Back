@@ -19,6 +19,7 @@ import Redis from 'ioredis';
     ConfigModule.forRoot({
       validationSchema: configValidationSchema,
       isGlobal: true,
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
