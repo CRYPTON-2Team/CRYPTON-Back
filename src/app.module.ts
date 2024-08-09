@@ -11,6 +11,7 @@ import { FileShareModule } from './file-shares/file-shares.module';
 import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { AccessRequestsModule } from './access-requests/access-requests.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AccessRequestsModule } from './access-requests/access-requests.module';
     UsersModule,
     FilesModule,
     AccessRequestsModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],

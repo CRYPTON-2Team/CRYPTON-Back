@@ -3,10 +3,14 @@ import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailProcessor } from './processors/email.processor';
 import { EmailService } from './services/email.service';
+import { NotificationService } from './services/notification.service';
+import { NotificationProcessor } from './processors/notification.processor';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
     ConfigModule,
+    NotificationsModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -17,13 +21,14 @@ import { EmailService } from './services/email.service';
       }),
       inject: [ConfigService],
     }),
-    BullModule.registerQueue({
-      name: 'email',
-    }),
+    BullModule.registerQueue({ name: 'email' }, { name: 'notifications' }),
   ],
   providers: [
     EmailService,
     EmailProcessor,
+    NotificationService,
+    NotificationProcessor,
+
     {
       provide: 'NODEMAILER_TRANSPORTER',
       useFactory: async (configService: ConfigService) => {
@@ -39,6 +44,6 @@ import { EmailService } from './services/email.service';
       inject: [ConfigService],
     },
   ],
-  exports: [EmailService, BullModule],
+  exports: [EmailService, NotificationService, BullModule],
 })
 export class QueuesModule {}
