@@ -98,6 +98,7 @@ export class FileController {
   @ApiParam({ name: 'key', type: 'string', description: '파일 키' })
   @ApiResponse({ status: 200, description: '파일 다운로드 성공' })
   @ApiResponse({ status: 404, description: '파일을 찾을 수 없음' })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   async downloadFile(@Param('key') key: string, @Res() res: Response) {
     try {
