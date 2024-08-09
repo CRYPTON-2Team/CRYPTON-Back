@@ -18,11 +18,11 @@ export class File {
   id: number;
 
   @Column()
-  userId: number;
+  fileOwnerId: number;
 
-  @ManyToOne(() => User, user => user.files)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @ManyToOne(() => User, (user) => user.ownedfiles)
+  @JoinColumn({ name: 'fileOwnerId' })
+  fileOwner: User;
 
   @Column()
   name: string;
@@ -48,9 +48,9 @@ export class File {
   @Column()
   ext: string;
 
-  @OneToMany(() => FileShare, fileShare => fileShare.file)
+  @OneToMany(() => FileShare, (fileShare) => fileShare.file)
   fileShares: FileShare[];
 
-  @OneToMany(() => AccessRequest, accessRequest => accessRequest.file)
+  @OneToMany(() => AccessRequest, (accessRequest) => accessRequest.file)
   accessRequests: AccessRequest[];
 }

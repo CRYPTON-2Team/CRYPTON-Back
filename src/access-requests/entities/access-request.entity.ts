@@ -23,9 +23,16 @@ export class AccessRequest {
   @Column()
   fileOwnerId: number;
 
-  @ManyToOne(() => User, (user) => user.sentAccessRequests)
+  @ManyToOne(() => User, (user) => user.receivedAccessRequests)
   @JoinColumn({ name: 'fileOwnerId' })
   fileOwner: User;
+
+  @Column()
+  requesterId: number;
+
+  @ManyToOne(() => User, (user) => user.sentAccessRequests)
+  @JoinColumn({ name: 'requesterId' })
+  requester: User;
 
   @Column({
     type: 'enum',
@@ -34,12 +41,12 @@ export class AccessRequest {
   })
   status: 'pending' | 'approved' | 'rejected';
 
+  @Column({ nullable: true })
+  encryptedKey: string;
+
   @Column()
   createdAt: Date;
 
   @Column()
   updatedAt: Date;
-
-  @Column({ nullable: true })
-  encryptedKey: string;
 }
