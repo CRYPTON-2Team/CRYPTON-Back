@@ -1,58 +1,51 @@
 version: '3.8'
-
 services:
   crypton:
-    container_name: crypton
+    container_name: crypton_dev
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - '${NODE_PORT}:${NODE_PORT}'
     env_file:
-      - .env
+      - .env.dev
     environment:
-      - DB_HOST=crypton_postgres
+      - NODE_ENV=${NODE_ENV}
+      - NODE_PORT=${NODE_PORT}
+      - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=crypton_redis
-      - REDIS_PORT=6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     command: npm run start:dev
     depends_on:
       - crypton_postgres
       - crypton_redis
-    networks:
-      - app-network
 
   crypton_redis:
     image: redis:latest
-    container_name: crypton_redis
-    command: redis-server --bind 0.0.0.0
+    container_name: crypton_redis_dev
     ports:
-      - '${REDIS_PORT}:6379'
-    networks:
-      - app-network
+      - '${REDIS_PORT}:${REDIS_PORT}'
 
   crypton_postgres:
     image: postgres:13
-    container_name: crypton_postgres
+    container_name: crypton_postgres_dev
     env_file:
-      - .env
+      - .env.dev
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - '${DB_PORT}:5432'
+      - '${DB_PORT}:${DB_PORT}'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+      - postgres_data_dev:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  postgres_data_dev:

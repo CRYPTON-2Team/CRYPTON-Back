@@ -4,16 +4,16 @@ import {
   Body,
   Get,
   Param,
+  Query,
+  NotFoundException,
   UnauthorizedException,
-  UseGuards,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileShareService } from './file-shares.service';
 import { CreateFileShareDto } from './dto/create-file-share.dto';
-import { SendFileShareEmailDto } from './dto/send-file-share-email.dto';
-import { VerifyAccessKeyDto } from './dto/verify-access-key.dto';
+import { AccessFileShareDto } from './dto/access-key.dto';
 
 @Controller('file-share')
-// @UserGuards(JwtAuthGuard)
 export class FileShareController {
   constructor(private readonly fileShareService: FileShareService) {}
 
@@ -34,51 +34,51 @@ export class FileShareController {
    *
    */
 
-  @Post('link')
-  async createFileShareLink(@Body() createFileShareDto: CreateFileShareDto) {
+  @Post()
+  // @UserGuards(JwtAuthGuard)
+  async createFileShareLink(
+    // @GetUser() user: User,
+    @Body() createFileShareDto: CreateFileShareDto,
+  ) {
     const userId = 1;
-    const fileShare = await this.fileShareService.createFileShareLink(
+    const result = await this.fileShareService.createFileShareLink(
       userId,
       createFileShareDto,
     );
-    const shareUrl = `http://localhost:3000/file-share/link/${fileShare.token}`;
+    const shareUrl = `http://localhost:3000/file-share/link/?token=${result.token}`;
+
     return {
       shareUrl,
-      expiresAt: fileShare.expiredAt,
-      fileId: fileShare.fileId,
-      userId: fileShare.userId,
+      expiredAt: result.expiredAt,
+      fileId: result.fileId,
+      userId: result.userId,
+      accessKey: result.accessKey,
     };
   }
 
-  @Get('link/:token')
-  async getFileShareByToken(@Param('token') token: string) {
-    const fileShare = await this.fileShareService.getFileShareByToken(token);
-    return {
-      message: '유효한 파일 링크입니다.',
-      fileId: fileShare.fileId,
-      fileName: fileShare.file.fileName,
-      fileSize: fileShare.file.fileSize,
-      fileType: fileShare.file.ext,
-      expiresAt: fileShare.expiredAt,
-    };
-  }
-
-  @Post('verify-access')
-  async verifyAccessKey(@Body() verifyAccessKeyDto: VerifyAccessKeyDto) {
-    const { token, accessKey } = verifyAccessKeyDto;
-    try {
-      await this.fileShareService.verifyAccessKey(token, accessKey);
-      return { message: '접근 권한이 확인되었습니다.' };
-    } catch (error) {
-      throw new UnauthorizedException('잘못된 접근 키입니다.');
-    }
-  }
-
-  @Post('send-emails')
-  async sendFileShareEmails(
-    @Body() sendFileShareEmailDto: SendFileShareEmailDto,
+  @Post('link')
+  async accessFileShare(
+    @Query('token') token: string,
+    @Body() accessFileShareDto: AccessFileShareDto,
   ) {
-    await this.fileShareService.sendFileShareEmails(sendFileShareEmailDto);
-    return { message: '이메일이 성공적으로 전송되었습니다.' };
+    try {
+      const fileShareInfo = await this.fileShareService.verifyAndGetFileShare(
+        token,
+        accessFileShareDto.accessKey,
+      );
+      return {
+        message: '파일 공유 접근이 승인되었습니다.',
+        fileShareInfo,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else if (error instanceof UnauthorizedException) {
+        throw new UnauthorizedException(error.message);
+      }
+      throw new InternalServerErrorException(
+        '파일 공유 접근 중 오류가 발생했습니다.',
+      );
+    }
   }
 }

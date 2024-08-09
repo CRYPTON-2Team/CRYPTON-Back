@@ -2,32 +2,43 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailProcessor } from './processors/email.processor';
+import { EmailService } from './services/email.service';
 
 @Module({
   imports: [
     ConfigModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
     BullModule.registerQueue({
       name: 'email',
     }),
   ],
   providers: [
+    EmailService,
     EmailProcessor,
     {
       provide: 'NODEMAILER_TRANSPORTER',
       useFactory: async (configService: ConfigService) => {
         const nodemailer = require('nodemailer');
         return nodemailer.createTransport({
-          host: configService.get('SMTP_HOST'),
-          port: configService.get('SMTP_PORT'),
-          secure: configService.get('SMTP_SECURE') === 'true',
+          service: 'gmail',
           auth: {
-            user: configService.get('SMTP_USER'),
-            pass: configService.get('SMTP_PASS'),
+            user: configService.get('MAIL_ID'),
+            pass: configService.get('MAIL_PASSWORD'),
           },
         });
       },
       inject: [ConfigService],
     },
   ],
+  exports: [EmailService, BullModule],
 })
 export class QueuesModule {}

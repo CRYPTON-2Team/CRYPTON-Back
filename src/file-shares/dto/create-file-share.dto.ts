@@ -1,16 +1,14 @@
-import { IsNumber, IsArray, IsOptional, Min, IsEmail } from 'class-validator';
+import { IsNumber, IsArray, Min, IsEmail, IsInt, Max } from 'class-validator';
 
 export class CreateFileShareDto {
   @IsNumber()
   fileId: number;
 
-  // @IsNumber()
-  // userId: number;
-
-  @IsOptional()
   @IsNumber()
+  @IsInt()
   @Min(1)
-  expiresInHours?: number;
+  @Max(168) // 최대 7일
+  expiresInHours: number;
 
   @IsArray()
   @IsEmail({}, { each: true })
