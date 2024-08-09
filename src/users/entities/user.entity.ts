@@ -5,7 +5,7 @@ import { AccessRequest } from '../../access-requests/entities/access-request.ent
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ unique: true })

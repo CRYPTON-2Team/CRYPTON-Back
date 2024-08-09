@@ -3,9 +3,19 @@ import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigModule } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 async function bootstrap() {
+  ConfigModule.forRoot({ isGlobal: true });
   const app = await NestFactory.create(AppModule);
+
+  console.log('AWS_S3_BUCKET:', process.env.AWS_S3_BUCKET);
+  console.log('AWS_REGION:', process.env.AWS_REGION);
+  ConfigModule.forRoot({ isGlobal: true });
+  app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));

@@ -35,7 +35,7 @@
           formData.append('file', file);
 
           // 서버로 파일 정보 전송
-          const response = await fetch('http://localhost:3000/files/upload', {
+          const response = await fetch('http://localhost:3000/file/upload', {
             method: 'POST',
             body: formData,
           });
@@ -75,8 +75,38 @@
               throw new Error('Failed to upload to S3');
             }
 
-            statusDiv.textContent = 'File uploaded successfully to S3';
-            console.log('File uploaded successfully to S3');
+            statusDiv.textContent =
+              'File uploaded successfully to S3. Completing upload...';
+
+            // complete-upload API 호출
+            const completeUploadResponse = await fetch(
+              'http://localhost:3000/file/complete-upload',
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  // 필요한 경우 인증 헤더 추가
+                  // 'Authorization': `Bearer ${yourAuthToken}`
+                },
+                body: JSON.stringify({
+                  s3Key: key,
+                  fileName: file.name,
+                  fileSize: file.size,
+                  metadataId: key.split('-')[1], // 메타데이터 ID 추출 (UUID)
+                  ext: file.name.split('.').pop(),
+                  mimeType: file.type,
+                }),
+              },
+            );
+
+            if (!completeUploadResponse.ok) {
+              throw new Error('Failed to complete upload process');
+            }
+
+            const completeUploadResult = await completeUploadResponse.json();
+            statusDiv.textContent =
+              'File upload process completed successfully';
+            console.log('Complete upload result:', completeUploadResult);
           } else {
             throw new Error('No upload URL provided');
           }
@@ -85,8 +115,6 @@
           statusDiv.textContent = `Error: ${error.message}`;
         }
       }
-
-
       //파일 다운로드
 
       async function downloadFile() {
@@ -101,9 +129,9 @@
 
         try {
           //서버에 파일 키를 사용하여 presigned url 요청
-          //파일 키는 
+          //파일 키는
           const response = await fetch(
-            `http://localhost:3000/files/download/${encodeURIComponent(fileKey)}`,
+            `http://localhost:3000/file/download/${encodeURIComponent(fileKey)}`,
             {
               method: 'GET',
             },
@@ -147,7 +175,6 @@
           document.body.appendChild(a);
           a.click();
 
-          
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
 
