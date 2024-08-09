@@ -13,6 +13,7 @@ import { CreateFileShareDto } from './dto/create-file-share.dto';
 import { EmailService } from 'src/queues/services/email.service';
 import * as crypto from 'crypto';
 import Redis from 'ioredis';
+import { RedisKeys } from 'src/common/utils/redis-keys.util';
 
 @Injectable()
 export class FileShareService {
@@ -32,7 +33,7 @@ export class FileShareService {
     const { fileId, expiresInHours = 24, recipientEmails } = createFileShareDto;
 
     const file = await this.fileRepository.findOne({
-      where: { id: fileId, userId },
+      where: { id: fileId, fileOwnerId: userId },
     });
     if (!file) {
       throw new NotFoundException('파일을 찾을 수 없습니다.');
@@ -43,8 +44,7 @@ export class FileShareService {
     const accessKey = crypto.randomBytes(32).toString('hex');
 
     const fileShare = this.fileShareRepository.create({
-      userId,
-      fileId,
+      fileId: file.id,
       token,
       createdAt: new Date(),
       expiredAt,
@@ -54,7 +54,7 @@ export class FileShareService {
 
     // Redis에 저장
     await this.redisClient.set(
-      `fileShare:${token}:accessKey`,
+      RedisKeys.fileAccessKey(fileId),
       accessKey,
       'EX',
       expiresInHours * 60 * 60,
@@ -70,11 +70,11 @@ export class FileShareService {
     );
 
     return {
-      token: fileShare.token,
-      expiredAt: fileShare.expiredAt,
-      fileId: fileShare.fileId,
-      userId,
+      token,
+      fileId: file.id,
+      fileOwnerId: file.fileOwnerId,
       accessKey,
+      expiredAt,
     };
   }
 
@@ -105,7 +105,7 @@ export class FileShareService {
     }
   }
 
-  async verifyAndGetFileShare(token: string, accessKey: string) {
+  async verifyFileShare(token: string, accessKey: string) {
     const fileShare = await this.fileShareRepository.findOne({
       where: { token },
       relations: ['file'],
@@ -120,14 +120,14 @@ export class FileShareService {
     }
 
     const storedAccessKey = await this.redisClient.get(
-      `fileShare:${token}:accessKey`,
+      RedisKeys.fileAccessKey(fileShare.file.id),
     );
     if (!storedAccessKey || storedAccessKey !== accessKey) {
       throw new UnauthorizedException('유효하지 않은 암호 키입니다.');
     }
 
     return {
-      fileId: fileShare.fileId,
+      fileId: fileShare.file.id,
       fileName: fileShare.file.name,
       fileSize: fileShare.file.size,
       fileType: fileShare.file.ext,
