@@ -3,9 +3,13 @@ import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigModule } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  ConfigModule.forRoot({ isGlobal: true });
+  app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));

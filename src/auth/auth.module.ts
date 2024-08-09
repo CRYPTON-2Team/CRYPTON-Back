@@ -6,6 +6,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './jwt/local.strategy';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { Redis } from 'ioredis';
+import { RedisModule } from '../redis/redis.module';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @Module({
   controllers: [AuthController],
@@ -16,7 +19,8 @@ import { PassportModule } from '@nestjs/passport';
       signOptions: { expiresIn: '60m' },
     }),
     PassportModule.register({ defaultStrategy: 'local' }),
+    RedisModule,
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenGuard],
 })
 export class AuthModule {}

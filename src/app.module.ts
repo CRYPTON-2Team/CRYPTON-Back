@@ -11,6 +11,8 @@ import { UsersModule } from './users/users.module';
 import { FilesModule } from './files/files.module';
 import { AccessRequestsModule } from './access-requests/access-requests.module';
 import { AuthModule } from './auth/auth.module';
+import { RedisModule } from './redis/redis.module';
+import Redis from 'ioredis';
 
 @Module({
   imports: [
@@ -34,8 +36,10 @@ import { AuthModule } from './auth/auth.module';
           enableReadyCheck: false,
         },
       }),
+
       inject: [ConfigService],
     }),
+
     HealthModule,
     FilesModule,
     QueuesModule,
@@ -44,8 +48,21 @@ import { AuthModule } from './auth/auth.module';
     FilesModule,
     AccessRequestsModule,
     AuthModule,
+    RedisModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: 'REDIS_CLIENT',
+      useFactory: (configService: ConfigService) => {
+        return new Redis({
+          host: configService.get('REDIS_HOST', 'localhost'),
+          port: configService.get('REDIS_PORT', 6379),
+          // 필요한 경우 추가 옵션 설정
+        });
+      },
+      inject: [ConfigService],
+    },
+  ],
 })
 export class AppModule {}
