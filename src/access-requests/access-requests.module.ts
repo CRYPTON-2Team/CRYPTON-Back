@@ -8,11 +8,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccessRequest } from './entities/access-request.entity';
 import { User } from 'src/users/entities/user.entity';
 import { File } from 'src/files/entities/file.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forFeature([File, AccessRequest, User]),
+    AuthModule,
     QueuesModule,
   ],
   providers: [AccessRequestsService, redisConfig],

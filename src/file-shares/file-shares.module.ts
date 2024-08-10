@@ -9,11 +9,13 @@ import { AccessRequest } from 'src/access-requests/entities/access-request.entit
 import { ConfigModule } from '@nestjs/config';
 import { QueuesModule } from 'src/queues/queues.module';
 import { redisConfig } from 'src/config/redis.config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forFeature([FileShare, File, AccessRequest, User]),
+    AuthModule,
     QueuesModule,
   ],
   providers: [FileShareService, redisConfig],

@@ -139,7 +139,7 @@ export class AccessRequestsService {
       await this.notificationService.sendNotification(
         accessRequest.requesterId,
         NotificationType.FILE_REQUEST_APPROVED,
-        `${accessRequest.file.name} 파일에 대한 접근 요청이 승인되었습니다. 이제 파일에 접근할 수 있습니다.`,
+        `${accessRequest.file.fileName} 파일에 대한 접근 요청이 승인되었습니다. 이제 파일에 접근할 수 있습니다.`,
       );
     } else if (updateAccessRequestDto.status === 'rejected') {
       accessRequest.encryptedKey = null;
@@ -148,7 +148,7 @@ export class AccessRequestsService {
       await this.notificationService.sendNotification(
         accessRequest.requesterId,
         NotificationType.FILE_REQUEST_REJECTED,
-        `${accessRequest.file.name} 파일에 대한 접근 요청이 거절되었습니다.`,
+        `${accessRequest.file.fileName} 파일에 대한 접근 요청이 거절되었습니다.`,
       );
     }
 

@@ -17,6 +17,15 @@ export class User {
   @OneToMany(() => File, (file) => file.fileOwner)
   ownedfiles: File[];
 
+  @Column({ unique: true })
+  username: string;
+
+  @Column({ default: 'user' })
+  role: string;
+
+  @Column({ default: null })
+  profileImgUrl: string;
+
   @OneToMany(() => FileShare, (fileShare) => fileShare.user)
   fileShares: FileShare[];
 
