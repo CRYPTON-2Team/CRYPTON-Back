@@ -1,3 +1,4 @@
+import { NotificationType } from 'src/common/types/notification-types.enum';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,8 +14,11 @@ export class Notification {
   @Column()
   userId: number;
 
-  @Column()
-  type: string;
+  @Column({
+    type: 'enum',
+    enum: NotificationType,
+  })
+  type: NotificationType;
 
   @Column()
   message: string;
