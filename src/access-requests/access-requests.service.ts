@@ -99,6 +99,10 @@ export class AccessRequestsService {
     id: number,
     updateAccessRequestDto: UpdateAccessRequestDto,
   ) {
+    console.log(
+      `Updating access request: userId=${userId}, fileId=${fileId}, id=${id}`,
+    );
+
     const accessRequest = await this.validateAccessRequest(
       id,
       userId,
@@ -106,6 +110,10 @@ export class AccessRequestsService {
     );
 
     if (accessRequest.fileId !== fileId) {
+      console.log(
+        `Mismatch: accessRequest.fileId=${accessRequest.fileId}, provided fileId=${fileId}`,
+      );
+
       throw new ForbiddenException(
         '해당 파일에 접근을 요청할 수 없습니다. 파일을 확인해주세요.',
       );

@@ -44,7 +44,7 @@ export class AccessRequestsController {
     //@GetUser() user: User,
     @Param('fileId') fileId: number,
   ) {
-    const userId = 1;
+    const userId = 2;
     return this.accessRequestsService.createAccessRequest(userId, fileId);
   }
 
@@ -70,7 +70,7 @@ export class AccessRequestsController {
     @Param('fileId') fileId: number,
     @Param('id') id: number,
   ) {
-    const userId = 1;
+    const userId = 2;
     return this.accessRequestsService.cancelAccessRequest(userId, fileId, id);
   }
 }

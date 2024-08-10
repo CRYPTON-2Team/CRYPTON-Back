@@ -45,6 +45,7 @@ export class FileShareService {
 
     const fileShare = this.fileShareRepository.create({
       fileId: file.id,
+      userId: userId,
       token,
       createdAt: new Date(),
       expiredAt,
@@ -73,6 +74,7 @@ export class FileShareService {
       token,
       fileId: file.id,
       fileOwnerId: file.fileOwnerId,
+      userId: userId,
       accessKey,
       expiredAt,
     };
